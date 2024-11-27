@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     PenjualanController,
     PenjualanDetailController,
     SettingController,
+    UserController,
 };
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,13 @@ Route::group (['middleware' => 'auth'], function () {
     Route::resource('/transaksi', PenjualanDetailController::class)
         ->except('create', 'show', 'edit');
 
+    Route::get('/Laporan',[LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/Laporan/data/{awal}/{akhir}',[LaporanController::class, 'data'])->name('laporan.data');
+    Route::post('/Laporan/pdf/{awal}/{akhir}',[LaporanController::class, 'exportPDF'])->name('laporan.export_pdf');
+
+    Route::get('/user/data', [UserController::class, 'data'])->name('user.data');
+    Route::resource('/user', UserController::class);
+    
     Route::get('/setting', [SettingController::class, 'index'])->name('setting.index');
     Route::get('/setting/first', [SettingController::class, 'show'])->name('setting.show');
     Route::post('/setting', [SettingController::class, 'update'])->name('setting.update');

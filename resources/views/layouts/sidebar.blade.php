@@ -67,14 +67,14 @@
             </li>
 
             <li class="header">REPORT</li>
-            <li>
-                <a href="#">
+              <li>
+                <a href="{{ route('laporan.index') }}">
                     <i class="fa fa-file-pdf-o"></i> <span>Laporan</span>
                 </a>
             </li>
             <li class="header">SYSTEM</li>
             <li>
-                <a href="#">
+                <a href="{{ route('user.index') }}">
                     <i class="fa fa-users"></i> <span>User</span>
                 </a>
             </li>
