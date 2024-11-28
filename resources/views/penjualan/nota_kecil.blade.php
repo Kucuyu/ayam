@@ -57,8 +57,9 @@
 <body onload="window.print()">
     <button class="btn-print" style="position: absolute; right: 1rem; top: rem;" onclick="window.print()">Print</button>
     <div class="text-center">
-        <h3 style="margin-bottom: 5px;">{{ strtoupper($setting->nama_perusahaan) }}</h3>
-        <p>{{ strtoupper($setting->alamat) }}</p>
+      <h3 style="margin-bottom: 5px;">Angkasa Hot Chicken</h3>
+        <p>Jl. Raya Kledokan No.D9, Tempel, Condongcatur, Kec. Depok, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55281</p>
+
     </div>
     <br>
     <div>

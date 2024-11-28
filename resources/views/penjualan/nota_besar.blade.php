@@ -31,9 +31,10 @@
     <table width="100%">
         <tr>
             <td rowspan="4" width="60%">
-                <img src="{{ public_path($setting->path_logo) }}" alt="{{ $setting->path_logo }}" width="120">
-                <br>
-                {{ $setting->alamat }}
+               <img src="/path/to/logo.png" alt="Logo" width="120">
+<br>
+Alamat Perusahaan
+
                 <br>
                 <br>
             </td>
