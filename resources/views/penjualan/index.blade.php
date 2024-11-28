@@ -21,6 +21,8 @@
                         <th>Kode Member</th>
                         <th>Total Item</th>
                         <th>Total Harga</th>
+                        <th>Poin Member</th>
+                        <th>Status Member</th>
                         <th>Diskon</th>
                         <th>Total Bayar</th>
                         <th>Kasir</th>
@@ -54,6 +56,8 @@
                 {data: 'kode_member'},
                 {data: 'total_item'},
                 {data: 'total_harga'},
+                {data: 'member_poin'},
+                {data: 'status'}, 
                 {data: 'diskon'},
                 {data: 'bayar'},
                 {data: 'kasir'},

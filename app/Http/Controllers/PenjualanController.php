@@ -6,6 +6,7 @@ use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
 use App\Models\Produk;
 use App\Models\Setting;
+use App\Models\Member;
 use Illuminate\Http\Request;
 use PDF;
 
@@ -17,45 +18,51 @@ class PenjualanController extends Controller
     }
 
     public function data()
-    {
-        $penjualan = Penjualan::with('member')->orderBy('id_penjualan', 'desc')->get();
+{
+    $penjualan = Penjualan::with('member')->orderBy('id_penjualan', 'desc')->get();
 
-        return datatables()
-            ->of($penjualan)
-            ->addIndexColumn()
-            ->addColumn('total_item', function ($penjualan) {
-                return format_uang($penjualan->total_item);
-            })
-            ->addColumn('total_harga', function ($penjualan) {
-                return 'Rp. '. format_uang($penjualan->total_harga);
-            })
-            ->addColumn('bayar', function ($penjualan) {
-                return 'Rp. '. format_uang($penjualan->bayar);
-            })
-            ->addColumn('tanggal', function ($penjualan) {
-                return tanggal_indonesia($penjualan->created_at, false);
-            })
-            ->addColumn('kode_member', function ($penjualan) {
-                $member = $penjualan->member->kode_member ?? '';
-                return '<span class="label label-success">'. $member .'</spa>';
-            })
-            ->editColumn('diskon', function ($penjualan) {
-                return $penjualan->diskon . '%';
-            })
-            ->editColumn('kasir', function ($penjualan) {
-                return $penjualan->user->name ?? '';
-            })
-            ->addColumn('aksi', function ($penjualan) {
-                return '
-                <div class="btn-group">
-                    <button onclick="showDetail(`'. route('penjualan.show', $penjualan->id_penjualan) .'`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-eye"></i></button>
-                    <button onclick="deleteData(`'. route('penjualan.destroy', $penjualan->id_penjualan) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
-                </div>
-                ';
-            })
-            ->rawColumns(['aksi', 'kode_member'])
-            ->make(true);
-    }
+    return datatables()
+        ->of($penjualan)
+        ->addIndexColumn()
+        ->addColumn('total_item', function ($penjualan) {
+            return format_uang($penjualan->total_item);
+        })
+        ->addColumn('total_harga', function ($penjualan) {
+            return 'Rp. ' . format_uang($penjualan->total_harga);
+        })
+        ->addColumn('bayar', function ($penjualan) {
+            return 'Rp. ' . format_uang($penjualan->bayar);
+        })
+        ->addColumn('tanggal', function ($penjualan) {
+            return tanggal_indonesia($penjualan->created_at, false);
+        })
+        ->addColumn('kode_member', function ($penjualan) {
+            $member = $penjualan->member->kode_member ?? '';
+            return '<span class="label label-success">' . $member . '</span>';
+        })
+        ->addColumn('member_poin', function ($penjualan) {
+            return $penjualan->member ? $penjualan->member->poin : 0;
+        })
+        ->addColumn('status', function ($penjualan) {
+            return $penjualan->member ? $penjualan->member->status : 'Tidak Terdaftar';
+        })
+        ->editColumn('diskon', function ($penjualan) {
+            return $penjualan->diskon . '%';
+        })
+        ->editColumn('kasir', function ($penjualan) {
+            return $penjualan->user->name ?? '';
+        })
+        ->addColumn('aksi', function ($penjualan) {
+            return '
+            <div class="btn-group">
+                <button onclick="showDetail(`' . route('penjualan.show', $penjualan->id_penjualan) . '`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-eye"></i></button>
+                <button onclick="deleteData(`' . route('penjualan.destroy', $penjualan->id_penjualan) . '`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
+            </div>
+            ';
+        })
+        ->rawColumns(['aksi', 'kode_member'])
+        ->make(true);
+}
 
     public function create()
     {
@@ -72,30 +79,39 @@ class PenjualanController extends Controller
         session(['id_penjualan' => $penjualan->id_penjualan]);
         return redirect()->route('transaksi.index');
     }
-
-    public function store(Request $request)
-    {
-        $penjualan = Penjualan::findOrFail($request->id_penjualan);
-        $penjualan->id_member = $request->id_member;
-        $penjualan->total_item = $request->total_item;
-        $penjualan->total_harga = $request->total;
-        $penjualan->diskon = $request->diskon;
-        $penjualan->bayar = $request->bayar;
-        $penjualan->diterima = $request->diterima;
-        $penjualan->update();
-
-        $detail = PenjualanDetail::where('id_penjualan', $penjualan->id_penjualan)->get();
-        foreach ($detail as $item) {
-            $item->diskon = $request->diskon;
-            $item->update();
-
-            $produk = Produk::find($item->id_produk);
-            $produk->stok -= $item->jumlah;
-            $produk->update();
-        }
-
-        return redirect()->route('transaksi.selesai');
+    protected function calculatePoin($total_harga)
+{
+    if ($total_harga >= 25000) {
+        return floor($total_harga / 25000) * 250;
+    } else {
+        return 50;
     }
+}
+
+
+   public function store(Request $request)
+{
+    // Simpan data penjualan
+    $penjualan = Penjualan::findOrFail($request->id_penjualan);
+    $penjualan->id_member = $request->id_member;
+    $penjualan->total_item = $request->total_item;
+    $penjualan->total_harga = $request->total;
+    $penjualan->diskon = $request->diskon;
+    $penjualan->bayar = $request->bayar;
+    $penjualan->diterima = $request->diterima;
+    $penjualan->update();
+
+    // Hitung dan tambahkan poin ke member
+    if ($penjualan->id_member) {
+        $poin = $this->calculatePoin($penjualan->total_harga);
+        $member = Member::find($penjualan->id_member);
+        $member->poin += $poin;
+        $member->save();
+    }
+
+    return redirect()->route('transaksi.selesai');
+}
+
 
     public function show($id)
     {

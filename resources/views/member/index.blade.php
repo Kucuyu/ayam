@@ -28,6 +28,7 @@
                             <th width="5%">No</th>
                             <th>Kode</th>
                             <th>Nama</th>
+                            <th>poin</th>
                             <th>Telepon</th>
                             <th>Alamat</th>
                             <th width="15%"><i class="fa fa-cog"></i></th>
@@ -60,6 +61,7 @@
                 {data: 'DT_RowIndex', searchable: false, sortable: false},
                 {data: 'kode_member'},
                 {data: 'nama'},
+                {data: 'poin'},
                 {data: 'telepon'},
                 {data: 'alamat'},
                 {data: 'aksi', searchable: false, sortable: false},

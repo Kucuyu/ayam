@@ -78,31 +78,44 @@ class PenjualanDetailController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $produk = Produk::where('id_produk', $request->id_produk)->first();
-        if (! $produk) {
-            return response()->json('Data gagal disimpan', 400);
-        }
-
-        $detail = new PenjualanDetail();
-        $detail->id_penjualan = $request->id_penjualan;
-        $detail->id_produk = $produk->id_produk;
-        $detail->harga_jual = $produk->harga_jual;
-        $detail->jumlah = 1;
-        $detail->diskon = $produk->diskon;
-        $detail->subtotal = $produk->harga_jual - ($produk->diskon / 100 * $produk->harga_jual);;
-        $detail->save();
-
-        return response()->json('Data berhasil disimpan', 200);
+{
+    $produk = Produk::where('id_produk', $request->id_produk)->first();
+    if (!$produk) {
+        return response()->json('Data gagal disimpan', 400);
     }
 
-    public function update(Request $request, $id)
-    {
-        $detail = PenjualanDetail::find($id);
-        $detail->jumlah = $request->jumlah;
-        $detail->subtotal = $detail->harga_jual * $request->jumlah - (($detail->diskon * $request->jumlah) / 100 * $detail->harga_jual);;
-        $detail->update();
-    }
+    // Ambil diskon jika ada
+    $diskon = $request->diskon ?? $produk->diskon; // Memastikan diskon diterapkan
+
+    // Hitung subtotal dengan diskon
+    $subtotal = $produk->harga_jual - ($diskon / 100 * $produk->harga_jual);
+
+    $detail = new PenjualanDetail();
+    $detail->id_penjualan = $request->id_penjualan;
+    $detail->id_produk = $produk->id_produk;
+    $detail->harga_jual = $produk->harga_jual;
+    $detail->jumlah = 1; // Jika ingin jumlah dinamis, pastikan ini sesuai
+    $detail->diskon = $diskon;
+    $detail->subtotal = $subtotal;
+    $detail->save();
+
+    return response()->json('Data berhasil disimpan', 200);
+}
+
+
+  public function update(Request $request, $id)
+{
+    $detail = PenjualanDetail::find($id);
+    
+    // Perbarui jumlah dan diskon
+    $detail->jumlah = $request->jumlah;
+    
+    // Hitung subtotal dengan diskon yang benar
+    $detail->subtotal = $detail->harga_jual * $request->jumlah - (($detail->diskon * $request->jumlah) / 100 * $detail->harga_jual);
+    
+    $detail->update();
+}
+
 
     public function destroy($id)
     {
@@ -112,19 +125,33 @@ class PenjualanDetailController extends Controller
         return response(null, 204);
     }
 
-    public function loadForm($diskon = 0, $total = 0, $diterima = 0)
-    {
-        $bayar   = $total - ($diskon / 100 * $total);
-        $kembali = ($diterima != 0) ? $diterima - $bayar : 0;
-        $data    = [
-            'totalrp' => format_uang($total),
-            'bayar' => $bayar,
-            'bayarrp' => format_uang($bayar),
-            'terbilang' => ucwords(terbilang($bayar). ' Rupiah'),
-            'kembalirp' => format_uang($kembali),
-            'kembali_terbilang' => ucwords(terbilang($kembali). ' Rupiah'),
-        ];
+   public function loadForm($diskon = 0, $total = 0, $diterima = 0)
+{
+    $member = Member::find(request('id_member'));
+    $memberDiskon = 0;
 
-        return response()->json($data);
+    if ($member) {
+        if ($member->poin >= 6000) {
+            $memberDiskon = 20; // Diskon Platinum
+        } elseif ($member->poin >= 4000) {
+            $memberDiskon = 10; // Diskon Gold
+        } elseif ($member->poin >= 2000) {
+            $memberDiskon = 5;  // Diskon Bronze
+        }
     }
+
+    // Menghitung total diskon berdasarkan diskon transaksi dan member
+    $totalDiskon = $total - ($diskon / 100 * $total) - ($memberDiskon / 100 * $total);
+    $kembali = ($diterima != 0) ? $diterima - $totalDiskon : 0;
+
+    return response()->json([
+        'totalrp' => format_uang($total),
+        'bayar' => $totalDiskon,
+        'bayarrp' => format_uang($totalDiskon),
+        'kembalirp' => format_uang($kembali),
+        'terbilang' => ucwords(terbilang($totalDiskon) . ' Rupiah'),
+    ]);
+}
+
+
 }

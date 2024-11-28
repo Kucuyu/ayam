@@ -57,6 +57,20 @@
         </div>
     </div>
     <!-- ./col -->
+    <div class="col-lg-3 col-xs-6">
+        <!-- small box -->
+        <div class="small-box bg-red">
+            <div class="inner">
+                <h3>{{ $karyawan }}</h3>
+
+                <p>Total Karyawan</p>
+            </div>
+            <div class="icon">
+                <i class="fa fa-user"></i>
+            </div>
+            <a href="{{ route('karyawan.index') }}" class="small-box-footer">Lihat <i class="fa fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
     <!-- ./col -->
 </div>
 <!-- /.row -->
