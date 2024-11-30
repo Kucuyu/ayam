@@ -72,6 +72,7 @@ Route::group (['middleware' => 'auth'], function () {
     Route::get('/transaksi/nota-besar', [PenjualanController::class, 'notaBesar'])->name('transaksi.nota_besar');
 
     Route::get('/transaksi/{id}/data', [PenjualanDetailController::class, 'data'])->name('transaksi.data');
+    Route::get('/transaksi/get-diskon-by-poin', [PenjualanDetailController::class, 'getDiskonByPoinMember'])->name('transaksi.get-diskon-by-poin');
     Route::get('/transaksi/loadform/{diskon}/{total}/{diterima}', [PenjualanDetailController::class, 'loadForm'])->name('transaksi.load_form');
     Route::resource('/transaksi', PenjualanDetailController::class)
         ->except('create', 'show', 'edit');

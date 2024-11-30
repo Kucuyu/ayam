@@ -29,6 +29,7 @@
                             <th>Kode</th>
                             <th>Nama</th>
                             <th>poin</th>
+                            <th>Status</th>                    
                             <th>Telepon</th>
                             <th>Alamat</th>
                             <th width="15%"><i class="fa fa-cog"></i></th>
@@ -62,6 +63,7 @@
                 {data: 'kode_member'},
                 {data: 'nama'},
                 {data: 'poin'},
+                {data: 'status'},
                 {data: 'telepon'},
                 {data: 'alamat'},
                 {data: 'aksi', searchable: false, sortable: false},

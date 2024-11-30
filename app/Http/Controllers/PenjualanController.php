@@ -83,7 +83,7 @@ class PenjualanController extends Controller
     if ($total_harga >= 25000) {
         return floor($total_harga / 25000) * 250;
     } else {
-        return 50;
+        return 0;
     }
 }
 

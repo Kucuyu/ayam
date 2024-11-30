@@ -110,7 +110,7 @@
                             <div class="form-group row">
                                 <label for="diskon" class="col-lg-2 control-label">Diskon</label>
                                 <div class="col-lg-8">
-                                    <input type="number" name="diskon" id="diskon" class="form-control" value="{{ $diskon }}" readonly>
+                                    <input type="number" name="diskon" id="diskon" class="form-control" value="{{ $diskon }}"readonly>
                                 </div>
                             </div>
 
@@ -274,14 +274,29 @@
         $('#modal-member').modal('show');
     }
 
-    function pilihMember(id, kode) {
-        $('#id_member').val(id);
-        $('#kode_member').val(kode);
-        $('#diskon').val('{{ $diskon }}');
-        loadForm($('#diskon').val());
-        $('#diterima').val(0).focus().select();
-        hideMember();
-    }
+   function pilihMember(id, kode) {
+    // Ambil informasi poin member melalui ajax
+    $.ajax({
+        url: '{{ route('transaksi.get-diskon-by-poin') }}', 
+        method: 'GET',
+        data: { id_member: id },
+        success: function(response) {
+            $('#id_member').val(id);
+            $('#kode_member').val(kode);
+            $('#diskon').val(response.diskon);
+            
+            // Reload form dengan diskon baru
+            loadForm(response.diskon);
+            
+            $('#diterima').val(0).focus().select();
+            hideMember();
+        },
+        error: function() {
+            alert('Tidak dapat mengambil informasi member');
+        }
+    });
+}
+
 
     function hideMember() {
         $('#modal-member').modal('hide');
@@ -303,28 +318,30 @@
         }
     }
 
-    function loadForm(diskon = 0, diterima = 0) {
-        $('#total').val($('.total').text());
-        $('#total_item').val($('.total_item').text());
+   function loadForm(diskon = 0, diterima = 0) {
+    $('#total').val($('.total').text());
+    $('#total_item').val($('.total_item').text());
 
-        $.get(`{{ url('/transaksi/loadform') }}/${diskon}/${$('.total').text()}/${diterima}`)
-            .done(response => {
-                $('#totalrp').val('Rp. '+ response.totalrp);
-                $('#bayarrp').val('Rp. '+ response.bayarrp);
-                $('#bayar').val(response.bayar);
-                $('.tampil-bayar').text('Bayar: Rp. '+ response.bayarrp);
-                $('.tampil-terbilang').text(response.terbilang);
+    $.get(`{{ url('/transaksi/loadform') }}/${diskon}/${$('.total').text()}/${diterima}`)
+        .done(response => {
+            $('#totalrp').val('Rp. '+ response.totalrp);
+            $('#bayarrp').val('Rp. '+ response.bayarrp);
+            $('#bayar').val(response.bayar);
+            $('#diskon').val(diskon); // Perbarui input diskon
+            $('.tampil-bayar').text('Bayar: Rp. '+ response.bayarrp);
+            $('.tampil-terbilang').text(response.terbilang);
 
-                $('#kembali').val('Rp.'+ response.kembalirp);
-                if ($('#diterima').val() != 0) {
-                    $('.tampil-bayar').text('Kembali: Rp. '+ response.kembalirp);
-                    $('.tampil-terbilang').text(response.kembali_terbilang);
-                }
-            })
-            .fail(errors => {
-                alert('Tidak dapat menampilkan data');
-                return;
-            })
-    }
+            $('#kembali').val('Rp.'+ response.kembalirp);
+            if ($('#diterima').val() != 0) {
+                $('.tampil-bayar').text('Kembali: Rp. '+ response.kembalirp);
+                $('.tampil-terbilang').text(response.kembali_terbilang);
+            }
+        })
+        .fail(errors => {
+            alert('Tidak dapat menampilkan data');
+            return;
+        });
+}
+
 </script>
 @endpush

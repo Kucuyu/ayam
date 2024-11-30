@@ -168,6 +168,9 @@ class PenjualanDetailController extends Controller
         $memberDiskon = 0;
 
         if ($member) {
+
+            $memberDiskon = $this->getDiskonByPoin($member->poin);
+            $diskon = max($diskon, $memberDiskon);
             // Perhitungan diskon berdasarkan poin member
             if ($member->poin >= 6000) {
                 $memberDiskon = 20; // Diskon Platinum
@@ -198,4 +201,32 @@ class PenjualanDetailController extends Controller
             'terbilang' => ucwords(terbilang($total - ($diskon / 100 * $total)) . ' Rupiah'),
         ]);
     }
+
+    public function getDiskonByPoin($poin)
+{
+    if ($poin >= 6000) {
+        return 20; // Diskon Platinum
+    } elseif ($poin >= 4000) {
+        return 10; // Diskon Gold
+    } elseif ($poin >= 2000) {
+        return 5;  // Diskon Bronze
+    }
+    return 0; // Tidak ada diskon
+}
+
+public function getDiskonByPoinMember(Request $request)
+{
+    $member = Member::find($request->id_member);
+    
+    if (!$member) {
+        return response()->json(['diskon' => 0]);
+    }
+    
+    $diskon = $this->getDiskonByPoin($member->poin);
+    
+    return response()->json([
+        'diskon' => $diskon,
+        'poin' => $member->poin
+    ]);
+}
 }

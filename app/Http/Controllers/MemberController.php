@@ -20,31 +20,34 @@ class MemberController extends Controller
     }
 
     public function data()
-    {
-        $member = Member::orderBy('kode_member')->get();
+{
+    $member = Member::orderBy('kode_member')->get();
 
-        return datatables()
-            ->of($member)
-            ->addIndexColumn()
-            ->addColumn('select_all', function ($produk) {
-                return '
-                    <input type="checkbox" name="id_member[]" value="'. $produk->id_member .'">
-                ';
-            })
-            ->addColumn('kode_member', function ($member) {
-                return '<span class="label label-success">'. $member->kode_member .'<span>';
-            })
-            ->addColumn('aksi', function ($member) {
-                return '
-                <div class="btn-group">
-                    <button type="button" onclick="editForm(`'. route('member.update', $member->id_member) .'`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-pencil"></i></button>
-                    <button type="button" onclick="deleteData(`'. route('member.destroy', $member->id_member) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
-                </div>
-                ';
-            })
-            ->rawColumns(['aksi', 'select_all', 'kode_member'])
-            ->make(true);
-    }
+    return datatables()
+        ->of($member)
+        ->addIndexColumn()
+        ->addColumn('select_all', function ($member) {
+            return '
+                <input type="checkbox" name="id_member[]" value="'. $member->id_member .'">
+            ';
+        })
+        ->addColumn('kode_member', function ($member) {
+            return '<span class="label label-success">'. $member->kode_member .'<span>';
+        })
+        ->addColumn('status', function ($member) {
+            return $member->status; // Mengambil nilai dari accessor
+        })
+        ->addColumn('aksi', function ($member) {
+            return '
+            <div class="btn-group">
+                <button type="button" onclick="editForm(`'. route('member.update', $member->id_member) .'`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-pencil"></i></button>
+                <button type="button" onclick="deleteData(`'. route('member.destroy', $member->id_member) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
+            </div>
+            ';
+        })
+        ->rawColumns(['aksi', 'select_all', 'kode_member'])
+        ->make(true);
+}
 
     /**
      * Show the form for creating a new resource.

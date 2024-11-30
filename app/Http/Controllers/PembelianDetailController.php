@@ -67,22 +67,31 @@ class PembelianDetailController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $produk = Produk::where('id_produk', $request->id_produk)->first();
-        if (! $produk) {
-            return response()->json('Data gagal disimpan', 400);
-        }
+{
+    // Logika default
+    $produk = Produk::findOrFail($request->id_produk);
+    $subtotal = $produk->harga_jual - ($request->diskon / 100 * $produk->harga_jual);
 
-        $detail = new PembelianDetail();
-        $detail->id_pembelian = $request->id_pembelian;
-        $detail->id_produk = $produk->id_produk;
-        $detail->harga_beli = $produk->harga_beli;
-        $detail->jumlah = 1;
-        $detail->subtotal = $produk->harga_beli;
-        $detail->save();
-
-        return response()->json('Data berhasil disimpan', 200);
+    // Periksa member dan kurangi poin
+    $member = Member::find($request->id_member);
+    if ($member && $member->poin >= 2000) {
+        $poinYangDigunakan = $subtotal / 2500; // Misal 1 poin = 2500 IDR
+        $member->poin -= floor($poinYangDigunakan);
+        $member->save();
     }
+
+    // Simpan detail transaksi
+    $detail = new PenjualanDetail();
+    $detail->id_penjualan = $request->id_penjualan;
+    $detail->id_produk = $request->id_produk;
+    $detail->jumlah = $request->jumlah ?? 1;
+    $detail->diskon = $request->diskon;
+    $detail->subtotal = $subtotal;
+    $detail->save();
+
+    return response()->json('Data berhasil disimpan', 200);
+}
+
 
     public function update(Request $request, $id)
     {
