@@ -28,14 +28,17 @@
             </div>
             <div class="box-body table-responsive">
                 <table class="table table-stiped table-bordered">
-                    <thead>
-                        <th width="5%">No</th>
-                        <th>Tanggal</th>
-                        <th>Penjualan</th>
-                        <th>Pembelian</th>
-                        <th>Pendapatan</th>
-                    </thead>
-                </table>
+    <thead>
+        <th width="5%">No</th>
+        <th>Tanggal</th>
+        <th>Penjualan</th>
+        <th>Pembelian</th>
+        <th>Pendapatan</th>
+        <th>Poin Member</th> <!-- Tambahkan kolom poin -->
+        <th>Status Member</th> <!-- Tambahkan kolom status -->
+    </thead>
+</table>
+
             </div>
         </div>
     </div>
@@ -50,6 +53,7 @@
     let table;
 
     $(function () {
+        // Inisialisasi DataTables
         table = $('.table').DataTable({
             responsive: true,
             processing: true,
@@ -57,27 +61,67 @@
             autoWidth: false,
             ajax: {
                 url: '{{ route('laporan.data', [$tanggalAwal, $tanggalAkhir]) }}',
+                data: function (d) {
+                    d.member_id = $('#member_id').val(); // Ambil ID Member dari dropdown filter
+                },
             },
             columns: [
-                {data: 'DT_RowIndex', searchable: false, sortable: false},
-                {data: 'tanggal'},
-                {data: 'penjualan'},
-                {data: 'pembelian'},
-                {data: 'pendapatan'}
+                {data: 'DT_RowIndex', searchable: false, sortable: false}, // Kolom nomor urut
+                {data: 'tanggal'}, // Kolom tanggal
+                {data: 'penjualan'}, // Kolom penjualan
+                {data: 'pembelian'}, // Kolom pembelian
+                {data: 'pendapatan'}, // Kolom pendapatan
+                {data: 'poin'}, // Kolom poin member
+                {data: 'status'} // Kolom status member
             ],
             dom: 'Brt',
             bSort: false,
             bPaginate: false,
         });
 
+        // Inisialisasi Datepicker
         $('.datepicker').datepicker({
             format: 'yyyy-mm-dd',
             autoclose: true
         });
+
+        // Event ketika memilih member
+        $('#member_id').on('change', function () {
+            toggleColumns();
+            table.ajax.reload(); // Reload data tabel
+        });
+
+        // Fungsi untuk menyembunyikan/memunculkan kolom berdasarkan pilihan member
+        function toggleColumns() {
+            const memberId = $('#member_id').val();
+            if (memberId) {
+                // Jika member dipilih, sembunyikan kolom pembelian dan pendapatan
+                table.columns(3).visible(false); // Kolom pembelian (indeks ke-3)
+                table.columns(4).visible(false); // Kolom pendapatan (indeks ke-4)
+                table.columns(5).visible(true); // Kolom poin member (indeks ke-5)
+                table.columns(6).visible(true); // Kolom status member (indeks ke-6)
+            } else {
+                // Jika member tidak dipilih, sembunyikan kolom poin member dan status member
+                table.columns(3).visible(true); // Kolom pembelian (indeks ke-3)
+                table.columns(4).visible(true); // Kolom pendapatan (indeks ke-4)
+                table.columns(5).visible(false); // Kolom poin member (indeks ke-5)
+                table.columns(6).visible(false); // Kolom status member (indeks ke-6)
+            }
+        }
+
+        // Panggil fungsi saat tabel selesai dimuat
+        table.on('draw', function () {
+            toggleColumns(); // Pastikan kolom tetap sesuai kondisi pilihan member
+        });
     });
 
+    // Fungsi untuk membuka modal filter periode dan member
     function updatePeriode() {
         $('#modal-form').modal('show');
     }
 </script>
+
+
+
+
 @endpush

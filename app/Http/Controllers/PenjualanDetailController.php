@@ -6,41 +6,31 @@ use App\Models\Member;
 use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
 use App\Models\Produk;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class PenjualanDetailController extends Controller
 {
     public function index()
-{
-    $produk = Produk::orderBy('nama_produk')->get();
-    $member = Member::orderBy('nama')->get();
+    {
+        $produk = Produk::orderBy('nama_produk')->get();
+        $member = Member::orderBy('nama')->get();
+        $diskon = Setting::first()->diskon ?? 0;
 
-    // Cek apakah ada transaksi yang sedang berjalan
-    if ($id_penjualan = session('id_penjualan')) {
-        $penjualan = Penjualan::find($id_penjualan);
-        $memberSelected = $penjualan->member ?? new Member();
+        // Cek apakah ada transaksi yang sedang berjalan
+        if ($id_penjualan = session('id_penjualan')) {
+            $penjualan = Penjualan::find($id_penjualan);
+            $memberSelected = $penjualan->member ?? new Member();
 
-        // Hitung diskon berdasarkan poin member
-        $diskon = 0; // Default diskon jika member tidak ada
-        if ($memberSelected->poin >= 6000) {
-            $diskon = 20; // Diskon Platinum
-        } elseif ($memberSelected->poin >= 4000) {
-            $diskon = 10; // Diskon Gold
-        } elseif ($memberSelected->poin >= 2000) {
-            $diskon = 5;  // Diskon Bronze
-        }
-
-        // Kirim ke view
-        return view('penjualan_detail.index', compact('produk', 'member', 'id_penjualan', 'penjualan', 'memberSelected', 'diskon'));
-    } else {
-        if (auth()->user()->level == 1) {
-            return redirect()->route('transaksi.baru');
+            return view('penjualan_detail.index', compact('produk', 'member', 'diskon', 'id_penjualan', 'penjualan', 'memberSelected'));
         } else {
-            return redirect()->route('home');
+            if (auth()->user()->level == 1) {
+                return redirect()->route('transaksi.baru');
+            } else {
+                return redirect()->route('home');
+            }
         }
     }
-}
-
 
     public function data($id)
     {
@@ -88,71 +78,54 @@ class PenjualanDetailController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $produk = Produk::where('id_produk', $request->id_produk)->first();
-        if (!$produk) {
-            return response()->json('Produk tidak ditemukan', 400);
-        }
-
-        // Ambil diskon dari request atau produk
-        $diskon = $request->diskon ?? $produk->diskon;
-
-        // Hitung subtotal
-        $subtotal = $produk->harga_jual - ($diskon / 100 * $produk->harga_jual);
-
-        // Ambil member yang sedang melakukan transaksi
-        $member = Member::find($request->id_member);
-        $totalDiskon = 0;
-        
-        // Jika member memiliki poin dan diskon diterapkan
-        if ($member && $member->poin >= 2000) {
-            $totalDiskon = ($diskon / 100) * $produk->harga_jual;
-
-            // Mengurangi poin member berdasarkan diskon yang diterima
-            $poinYangDigunakan = ($totalDiskon / $produk->harga_jual) * $member->poin;
-            $member->poin -= $poinYangDigunakan;  // Mengurangi poin member
-            $member->save();  // Simpan perubahan poin
-        }
-
-        // Menyimpan detail penjualan
-        $detail = new PenjualanDetail();
-        $detail->id_penjualan = $request->id_penjualan;
-        $detail->id_produk = $produk->id_produk;
-        $detail->harga_jual = $produk->harga_jual;
-        $detail->jumlah = $request->jumlah ?? 1; // Jumlah produk
-        $detail->diskon = $diskon;
-        $detail->subtotal = $subtotal;
-        $detail->save();
-
-        return response()->json('Data berhasil disimpan', 200);
+{
+    $produk = Produk::where('id_produk', $request->id_produk)->first();
+    if (! $produk) {
+        return response()->json('Data gagal disimpan', 400);
     }
+
+    // Cek apakah stok mencukupi
+    if ($produk->stok < 1) {
+        return response()->json('Stok produk tidak mencukupi', 400);
+    }
+
+    $detail = new PenjualanDetail();
+    $detail->id_penjualan = $request->id_penjualan;
+    $detail->id_produk = $produk->id_produk;
+    $detail->harga_jual = $produk->harga_jual;
+    $detail->jumlah = 1;
+    $detail->diskon = $produk->diskon;
+    $detail->subtotal = $produk->harga_jual - ($produk->diskon / 100 * $produk->harga_jual);
+    $detail->save();
+
+    // Kurangi stok produk
+    $produk->stok -= 1;
+    $produk->save();
+
+    return response()->json('Data berhasil disimpan', 200);
+}
 
     public function update(Request $request, $id)
-    {
-        $detail = PenjualanDetail::find($id);
-        
-        $diskon = $request->diskon ?? $detail->diskon; // Gunakan diskon dari request atau yang ada di detail
-        $jumlah = $request->jumlah;
-        
-        // Hitung subtotal dengan diskon dan jumlah baru
-        $subtotal = $detail->harga_jual * $jumlah - (($diskon * $jumlah) / 100 * $detail->harga_jual);
-        
-        // Update detail
-        $detail->jumlah = $jumlah;
-        $detail->subtotal = $subtotal;
-        $detail->update();
+{
+    $detail = PenjualanDetail::find($id);
+    $produk = Produk::find($detail->id_produk);
 
-        // Mengurangi poin member jika diskon digunakan
-        $member = Member::find($detail->penjualan->id_member); // Ambil member dari penjualan terkait
-        if ($member && $member->poin >= 2000) {
-            $totalDiskon = ($diskon / 100) * $detail->harga_jual * $jumlah;
-            $poinYangDigunakan = ($totalDiskon / $detail->harga_jual) * $member->poin;
-            $member->poin -= $poinYangDigunakan;  // Mengurangi poin member
-            $member->save();  // Simpan perubahan poin
-        }
+    // Hitung selisih jumlah
+    $selisih = $request->jumlah - $detail->jumlah;
 
-        return response()->json('Detail transaksi berhasil diperbarui', 200);
+    // Cek apakah stok mencukupi
+    if ($produk->stok < $selisih) {
+        return response()->json('Stok produk tidak mencukupi', 400);
     }
+
+    $detail->jumlah = $request->jumlah;
+    $detail->subtotal = $detail->harga_jual * $request->jumlah - (($detail->diskon * $request->jumlah) / 100 * $detail->harga_jual);
+    $detail->update();
+
+    // Kurangi stok produk
+    $produk->stok -= $selisih;
+    $produk->save();
+}
 
     public function destroy($id)
     {
@@ -164,69 +137,61 @@ class PenjualanDetailController extends Controller
 
     public function loadForm($diskon = 0, $total = 0, $diterima = 0)
     {
-        $member = Member::find(request('id_member'));
-        $memberDiskon = 0;
-
-        if ($member) {
-
-            $memberDiskon = $this->getDiskonByPoin($member->poin);
-            $diskon = max($diskon, $memberDiskon);
-            // Perhitungan diskon berdasarkan poin member
-            if ($member->poin >= 6000) {
-                $memberDiskon = 20; // Diskon Platinum
-            } elseif ($member->poin >= 4000) {
-                $memberDiskon = 10; // Diskon Gold
-            } elseif ($member->poin >= 2000) {
-                $memberDiskon = 5;  // Diskon Bronze
-            }
-
-            // Mengurangi poin sesuai diskon
-            $totalDiskon = $total - ($diskon / 100 * $total) - ($memberDiskon / 100 * $total);
-            $kembali = ($diterima != 0) ? $diterima - $totalDiskon : 0;
-
-            return response()->json([
-                'totalrp' => format_uang($total),
-                'bayar' => $totalDiskon,
-                'bayarrp' => format_uang($totalDiskon),
-                'kembalirp' => format_uang($kembali),
-                'terbilang' => ucwords(terbilang($totalDiskon) . ' Rupiah'),
-            ]);
-        }
-
-        return response()->json([
+        $bayar   = $total - ($diskon / 100 * $total);
+        $kembali = ($diterima != 0) ? $diterima - $bayar : 0;
+        $data    = [
             'totalrp' => format_uang($total),
-            'bayar' => $total - ($diskon / 100 * $total),  // Jika tidak ada member, hanya diskon transaksi
-            'bayarrp' => format_uang($total - ($diskon / 100 * $total)),
-            'kembalirp' => format_uang($diterima - ($total - ($diskon / 100 * $total))),
-            'terbilang' => ucwords(terbilang($total - ($diskon / 100 * $total)) . ' Rupiah'),
-        ]);
+            'bayar' => $bayar,
+            'bayarrp' => format_uang($bayar),
+            'terbilang' => ucwords(terbilang($bayar). ' Rupiah'),
+            'kembalirp' => format_uang($kembali),
+            'kembali_terbilang' => ucwords(terbilang($kembali). ' Rupiah'),
+        ];
+
+        return response()->json($data);
     }
 
     public function getDiskonByPoin($poin)
-{
-    if ($poin >= 6000) {
-        return 20; // Diskon Platinum
-    } elseif ($poin >= 4000) {
-        return 10; // Diskon Gold
-    } elseif ($poin >= 2000) {
-        return 5;  // Diskon Bronze
+    {
+        if ($poin >= 6000) {
+            return 20; // Diskon Platinum
+        } elseif ($poin >= 4000) {
+            return 10; // Diskon Gold
+        } elseif ($poin >= 2000) {
+            return 5;  // Diskon Bronze
+        }
+        return 0; // Tidak ada diskon
     }
-    return 0; // Tidak ada diskon
+
+    public function getDiskonByPoinMember(Request $request)
+    {
+        $member = Member::find($request->id_member);
+
+        if (!$member) {
+            return response()->json(['diskon' => 0]);
+        }
+
+        $diskon = $this->getDiskonByPoin($member->poin);
+
+        return response()->json([
+            'diskon' => $diskon,
+            'poin' => $member->poin
+        ]);
+    }
+    public function simpan(Request $request)
+{
+    $penjualan = Penjualan::findOrFail($request->id_penjualan);
+    $details = PenjualanDetail::where('id_penjualan', $penjualan->id)->get();
+
+    // Kurangi stok untuk setiap produk di detail penjualan
+    foreach ($details as $detail) {
+        $produk = Produk::find($detail->id_produk);
+        $produk->stok -= $detail->jumlah;
+        $produk->save();
+    }
+
+    // Lanjutkan proses penyimpanan transaksi seperti biasa
+    // ...
+}
 }
 
-public function getDiskonByPoinMember(Request $request)
-{
-    $member = Member::find($request->id_member);
-    
-    if (!$member) {
-        return response()->json(['diskon' => 0]);
-    }
-    
-    $diskon = $this->getDiskonByPoin($member->poin);
-    
-    return response()->json([
-        'diskon' => $diskon,
-        'poin' => $member->poin
-    ]);
-}
-}
