@@ -16,7 +16,7 @@ class PenjualanController extends Controller
         return view('penjualan.index');
     }
 
-    public function data()
+   public function data()
 {
     $penjualan = Penjualan::with('member')->orderBy('id_penjualan', 'desc')->get();
 
@@ -35,8 +35,8 @@ class PenjualanController extends Controller
         ->addColumn('tanggal', function ($penjualan) {
             return tanggal_indonesia($penjualan->created_at, false);
         })
-        ->addColumn('kode_member', function ($penjualan) {
-            $member = $penjualan->member->kode_member ?? '';
+        ->addColumn('nama', function ($penjualan) {
+            $member = $penjualan->member->nama ?? ''; // Mengambil nama dari relasi member
             return '<span class="label label-success">' . $member . '</span>';
         })
         ->addColumn('member_poin', function ($penjualan) {
@@ -59,9 +59,10 @@ class PenjualanController extends Controller
             </div>
             ';
         })
-        ->rawColumns(['aksi', 'kode_member'])
+        ->rawColumns(['aksi', 'nama'])
         ->make(true);
 }
+
 
     public function create()
     {

@@ -14,6 +14,9 @@ use App\Http\Controllers\{
     PenjualanDetailController,
     SettingController,
     UserController,
+    LaporanPembelianController,
+    LaporanPenjualanController,
+
 };
 use Illuminate\Support\Facades\Route;
 
@@ -46,8 +49,10 @@ Route::group (['middleware' => 'auth'], function () {
     Route::post('/member/cetak-member', [MemberController::class, 'cetakMember'])->name('member.cetak_member');
     Route::resource('/member', MemberController::class);
 
+ 
     Route::get('/karyawan/data', [KaryawanController::class, 'data'])->name('karyawan.data');
     Route::resource('/karyawan', KaryawanController::class);
+
 
     Route::get('/pembelian/data', [PembelianController::class, 'data'])->name('pembelian.data');
     Route::get('/pembelian/{id}/create', [PembelianController::class, 'create'])->name('pembelian.create');
@@ -77,8 +82,8 @@ Route::group (['middleware' => 'auth'], function () {
     Route::resource('/transaksi', PenjualanDetailController::class)
         ->except('create', 'show', 'edit');
 
-    Route::get('/Laporan',[LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('/Laporan/data/{awal}/{akhir}',[LaporanController::class, 'data'])->name('laporan.data');
+Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+Route::get('/laporan/data/{awal?}/{akhir?}/{status?}', [LaporanController::class, 'data'])->name('laporan.data');
     Route::post('/Laporan/pdf/{awal}/{akhir}',[LaporanController::class, 'exportPDF'])->name('laporan.export_pdf');
 
     Route::get('/user/data', [UserController::class, 'data'])->name('user.data');
@@ -90,4 +95,9 @@ Route::group (['middleware' => 'auth'], function () {
 
     Route::get('/profil', [UserController::class, 'profil'])->name('user.profil');
     Route::post('/profil', [UserController::class, 'updateProfil'])->name('user.update_profil');
+
+    Route::get('/laporan-pembelian', [LaporanPembelianController::class, 'index'])->name('laporan_pembelian.index');
+    Route::get('/laporan-pembelian/data/{awal}/{akhir}', [LaporanPembelianController::class, 'data'])->name('laporan_pembelian.data');
+    Route::post('/laporan-pembelian/pdf/{awal}/{akhir}', [LaporanPembelianController::class, 'exportPDF'])->name('laporan_pembelian.export_pdf');
+
 });

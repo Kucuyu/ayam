@@ -69,9 +69,15 @@
             <li class="header">REPORT</li>
               <li>
                 <a href="{{ route('laporan.index') }}">
-                    <i class="fa fa-file-pdf-o"></i> <span>Laporan</span>
+                    <i class="fa fa-file-pdf-o"></i> <span>Laporan Penjualan</span>
                 </a>
             </li>
+           <li>
+                <a href="{{ route('laporan_pembelian.index') }}">
+                    <i class="fa fa-file-pdf-o"></i> <span>Laporan Pembelian</span>
+                </a> 
+            </li>
+             
             <li class="header">SYSTEM</li>
             <li>
                 <a href="{{ route('user.index') }}">

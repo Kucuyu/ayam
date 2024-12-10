@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('title')
-    Laporan Penjualan {{ tanggal_indonesia($tanggalAwal, false) }} s/d {{ tanggal_indonesia($tanggalAkhir, false) }}
+    Laporan Pembelian {{ tanggal_indonesia($tanggalAwal, false) }} s/d {{ tanggal_indonesia($tanggalAkhir, false) }}
 @endsection
 
 @push('css')
@@ -10,7 +10,7 @@
 
 @section('breadcrumb')
     @parent
-    <li class="active">Laporan Penjualan</li>
+    <li class="active">Laporan Pembelian</li>
 @endsection
 
 @section('content')
@@ -19,7 +19,7 @@
         <div class="box">
             <div class="box-header with-border">
                 <button onclick="updatePeriode()" class="btn btn-info btn-xs btn-flat"><i class="fa fa-calendar"></i> Ubah Periode</button>
-                <form action="{{ route('laporan.export_pdf', [$tanggalAwal, $tanggalAkhir]) }}" method="POST" target="_blank" style="display: inline;">
+                <form action="{{ route('laporan_pembelian.export_pdf', [$tanggalAwal, $tanggalAkhir]) }}" method="POST" target="_blank" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn btn-success btn-xs btn-flat">
                         <i class="fa fa-file-pdf-o"></i> Export PDF
@@ -31,12 +31,9 @@
                     <thead>
                         <th width="5%">No</th>
                         <th>Tanggal</th>
-                        <th>Nama</th>
+                        <th>Karyawan</th>
                         <th>Total Item</th>
                         <th>Total Harga</th>
-                        <th>Status Member</th>
-                        <th>Poin Member</th>
-                        <th>Kasir</th>
                     </thead>
                 </table>
             </div>
@@ -44,7 +41,7 @@
     </div>
 </div>
 
-@includeIf('laporan.form')
+@includeIf('laporan_pembelian.form')
 @endsection
 
 @push('scripts')
@@ -53,45 +50,38 @@
     let table;
 
     $(function () {
+        // Inisialisasi DataTables
         table = $('.table').DataTable({
             responsive: true,
             processing: true,
             serverSide: true,
             autoWidth: false,
             ajax: {
-                url: '{{ route('laporan.data', [$tanggalAwal, $tanggalAkhir]) }}',
-                data: function (d) {
-                    d.nama = $('#nama').val(); // Kirim nilai nama dari input filter
-                }
+                url: '{{ route('laporan_pembelian.data', [$tanggalAwal, $tanggalAkhir]) }}',
             },
             columns: [
-                {data: 'DT_RowIndex', searchable: false, sortable: false},
-                {data: 'tanggal'},
-                {data: 'nama'},
-                {data: 'total_item'},
+                {data: 'DT_RowIndex', searchable: false, sortable: false}, // Nomor urut
+                {data: 'tanggal'}, // Kolom tanggal
+                {data: 'karyawan'},
+                {data: 'total_item'}, // Kolom total pembelian
                 {data: 'total_harga'},
-                {data: 'status_member'},
-                {data: 'poin_member'},
-                {data: 'kasir'},
+                
             ],
             dom: 'Brt',
             bSort: false,
             bPaginate: false,
         });
 
+        // Inisialisasi Datepicker
         $('.datepicker').datepicker({
             format: 'yyyy-mm-dd',
             autoclose: true
         });
     });
 
+    // Fungsi untuk membuka modal filter periode
     function updatePeriode() {
         $('#modal-form').modal('show');
     }
-
-    function filterData() {
-        table.ajax.reload();
-    }
 </script>
-
 @endpush
