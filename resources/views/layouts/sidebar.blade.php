@@ -84,11 +84,6 @@
                     <i class="fa fa-users"></i> <span>User</span>
                 </a>
             </li>
-            <li>
-                <a href="{{ route("setting.index") }}">
-                    <i class="fa fa-cogs"></i> <span>Pengaturan</span>
-                </a>
-            </li>
             @else
              <li class="header">MASTER</li>
             <li>
@@ -118,11 +113,6 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('transaksi.index') }}">
-                    <i class="fa fa-cart-arrow-down"></i> <span>Transaksi Aktif</span>
-                </a>
-            </li>
-            <li>
                 <a href="{{ route('transaksi.baru') }}">
                     <i class="fa fa-cart-arrow-down"></i> <span>Transaksi Baru</span>
                 </a>
@@ -133,6 +123,16 @@
                 <a href="{{ route('laporan.index') }}">
                     <i class="fa fa-file-pdf-o"></i> <span>Laporan</span>
                 </a>
+            </li>
+            <li>
+                <a href="{{ route('laporan.index') }}">
+                    <i class="fa fa-file-pdf-o"></i> <span>Laporan Penjualan</span>
+                </a>
+            </li>
+           <li>
+                <a href="{{ route('laporan_pembelian.index') }}">
+                    <i class="fa fa-file-pdf-o"></i> <span>Laporan Pembelian</span>
+                </a> 
             </li>
             @endif
         </ul>
