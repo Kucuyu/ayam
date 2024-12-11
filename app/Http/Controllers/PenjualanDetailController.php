@@ -180,6 +180,8 @@ class PenjualanDetailController extends Controller
     }
     public function simpan(Request $request)
 {
+
+    
     $penjualan = Penjualan::findOrFail($request->id_penjualan);
     $details = PenjualanDetail::where('id_penjualan', $penjualan->id)->get();
 

@@ -34,6 +34,11 @@
                     <i class="fa fa-cubes"></i> <span>Produk</span>
                 </a>
             </li>
+             <li>
+                <a href="{{ route('stok.index') }}">
+                    <i class="fa fa-cubes"></i> <span>Stok</span>
+                </a>
+            </li>
             <li>
                 <a href="{{ route('member.index') }}">
                     <i class="fa fa-id-card"></i> <span>Member</span>
@@ -53,11 +58,6 @@
             <li>
                 <a href="{{ route('penjualan.index') }}">
                     <i class="fa fa-upload"></i> <span>Penjualan</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('transaksi.index') }}">
-                    <i class="fa fa-cart-arrow-down"></i> <span>Transaksi Aktif</span>
                 </a>
             </li>
             <li>
@@ -96,6 +96,12 @@
                     <i class="fa fa-cubes"></i> <span>Produk</span>
                 </a>
             </li>
+             </li>
+             <li>
+                <a href="{{ route('stok.index') }}">
+                    <i class="fa fa-cubes"></i> <span>Stok</span>
+                </a>
+            </li>
             <li>
                 <a href="{{ route('member.index') }}">
                     <i class="fa fa-id-card"></i> <span>Member</span>
@@ -119,11 +125,6 @@
             </li>
 
             <li class="header">REPORT</li>
-              <li>
-                <a href="{{ route('laporan.index') }}">
-                    <i class="fa fa-file-pdf-o"></i> <span>Laporan</span>
-                </a>
-            </li>
             <li>
                 <a href="{{ route('laporan.index') }}">
                     <i class="fa fa-file-pdf-o"></i> <span>Laporan Penjualan</span>

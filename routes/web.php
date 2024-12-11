@@ -5,6 +5,7 @@ use App\Http\Controllers\{
     KategoriController,
     LaporanController,
     ProdukController,
+    StokController,
     MemberController,
     KaryawanController,
     PengeluaranController,
@@ -48,15 +49,18 @@ Route::group (['middleware' => 'auth'], function () {
     Route::post('/produk/cetak-barcode', [ProdukController::class, 'cetakBarcode'])->name('produk.cetak_barcode');
     Route::resource('/produk', ProdukController::class);
 
+    Route::get('/stok/data', [StokController::class, 'data'])->name('stok.data');
+    Route::post('/stok/delete-selected', [StokController::class, 'deleteSelected'])->name('stok.delete_selected');
+    Route::post('/stok/cetak-barcode', [StokController::class, 'cetakBarcode'])->name('stok.cetak_barcode');
+    Route::resource('/stok', StokController::class);
+
     Route::get('/member/data', [MemberController::class, 'data'])->name('member.data');
     Route::post('/member/cetak-member', [MemberController::class, 'cetakMember'])->name('member.cetak_member');
     Route::resource('/member', MemberController::class);
 
-     Route::group(['middleware' => 'level:1'], function () {
     Route::get('/karyawan/data', [KaryawanController::class, 'data'])->name('karyawan.data');
     Route::resource('/karyawan', KaryawanController::class);
-});
-
+    
     Route::get('/pembelian/data', [PembelianController::class, 'data'])->name('pembelian.data');
     Route::get('/pembelian/{id}/create', [PembelianController::class, 'create'])->name('pembelian.create');
     Route::resource('/pembelian', PembelianController::class)

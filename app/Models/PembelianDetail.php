@@ -13,8 +13,8 @@ class PembelianDetail extends Model
     protected $primaryKey = 'id_pembelian_detail';
     protected $guarded = [];
 
-    public function produk()
+    public function stok()
     {
-        return $this->hasOne(Produk::class, 'id_produk', 'id_produk');
+        return $this->hasOne(Stok::class, 'id_stok', 'id_stok');
     }
 }

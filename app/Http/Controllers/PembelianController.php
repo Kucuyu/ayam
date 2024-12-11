@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pembelian;
 use App\Models\PembelianDetail;
-use App\Models\Produk;
+use App\Models\Stok;
 use App\Models\Karyawan;
 
 class PembelianController extends Controller
@@ -81,9 +81,9 @@ class PembelianController extends Controller
 
         $detail = PembelianDetail::where('id_pembelian', $pembelian->id_pembelian)->get();
         foreach ($detail as $item) {
-            $produk = Produk::find($item->id_produk);
-            $produk->stok += $item->jumlah;
-            $produk->update();
+            $stok = Stok::find($item->id_stok);
+            $stok->stok += $item->jumlah;
+            $stok->update();
         }
 
         return redirect()->route('pembelian.index');
@@ -91,16 +91,16 @@ class PembelianController extends Controller
 
     public function show($id)
     {
-        $detail = PembelianDetail::with('produk')->where('id_pembelian', $id)->get();
+        $detail = PembelianDetail::with('stok')->where('id_pembelian', $id)->get();
 
         return datatables()
             ->of($detail)
             ->addIndexColumn()
-            ->addColumn('kode_produk', function ($detail) {
-                return '<span class="label label-success">'. $detail->produk->kode_produk .'</span>';
+            ->addColumn('kode_stok', function ($detail) {
+                return '<span class="label label-success">'. $detail->stok->kode_stok .'</span>';
             })
-            ->addColumn('nama_produk', function ($detail) {
-                return $detail->produk->nama_produk;
+            ->addColumn('nama_stok', function ($detail) {
+                return $detail->stok->nama_stok;
             })
             ->addColumn('harga_beli', function ($detail) {
                 return 'Rp. '. format_uang($detail->harga_beli);
@@ -111,7 +111,7 @@ class PembelianController extends Controller
             ->addColumn('subtotal', function ($detail) {
                 return 'Rp. '. format_uang($detail->subtotal);
             })
-            ->rawColumns(['kode_produk'])
+            ->rawColumns(['kode_stok'])
             ->make(true);
     }
 
@@ -120,10 +120,10 @@ class PembelianController extends Controller
         $pembelian = Pembelian::find($id);
         $detail    = PembelianDetail::where('id_pembelian', $pembelian->id_pembelian)->get();
         foreach ($detail as $item) {
-            $produk = Produk::find($item->id_produk);
-            if ($produk) {
-                $produk->stok -= $item->jumlah;
-                $produk->update();
+            $stok = Stok::find($item->id_stok);
+            if ($stok) {
+                $stok->stok -= $item->jumlah;
+                $stok->update();
             }
             $item->delete();
         }

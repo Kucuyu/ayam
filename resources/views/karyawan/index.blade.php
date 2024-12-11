@@ -64,7 +64,7 @@
                         table.ajax.reload();
                     })
                     .fail((errors) => {
-                        alert('Tidak dapat menyimpan data');
+                        alert('Nomor telepon sudah digunakan, silakan gunakan nomor lain');
                         return;
                     });
             }

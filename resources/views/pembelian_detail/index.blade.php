@@ -58,17 +58,17 @@
             </div>
             <div class="box-body">
                     
-                <form class="form-produk">
+                <form class="form-stok">
                     @csrf
                     <div class="form-group row">
-                        <label for="kode_produk" class="col-lg-2">Kode Produk</label>
+                        <label for="kode_stok" class="col-lg-2">Kode Stok</label>
                         <div class="col-lg-5">
                             <div class="input-group">
                                 <input type="hidden" name="id_pembelian" id="id_pembelian" value="{{ $id_pembelian }}">
-                                <input type="hidden" name="id_produk" id="id_produk">
-                                <input type="text" class="form-control" name="kode_produk" id="kode_produk">
+                                <input type="hidden" name="id_stok" id="id_stok">
+                                <input type="text" class="form-control" name="kode_stok" id="kode_stok">
                                 <span class="input-group-btn">
-                                    <button onclick="tampilProduk()" class="btn btn-info btn-flat" type="button"><i class="fa fa-arrow-right"></i></button>
+                                    <button onclick="tampilStok()" class="btn btn-info btn-flat" type="button"><i class="fa fa-arrow-right"></i></button>
                                 </span>
                             </div>
                         </div>
@@ -130,7 +130,7 @@
     </div>
 </div>
 
-@includeIf('pembelian_detail.produk')
+@includeIf('pembelian_detail.stok')
 @endsection
 
 @push('scripts')
@@ -150,8 +150,8 @@
             },
             columns: [
                 {data: 'DT_RowIndex', searchable: false, sortable: false},
-                {data: 'kode_produk'},
-                {data: 'nama_produk'},
+                {data: 'kode_stok'},
+                {data: 'nama_stok'},
                 {data: 'harga_beli'},
                 {data: 'jumlah'},
                 {data: 'subtotal'},
@@ -164,7 +164,7 @@
         .on('draw.dt', function () {
             loadForm($('#diskon').val());
         });
-        table2 = $('.table-produk').DataTable();
+        table2 = $('.table-stok').DataTable();
 
         $(document).on('input', '.quantity', function () {
             let id = $(this).data('id');
@@ -210,25 +210,25 @@
         });
     });
 
-    function tampilProduk() {
-        $('#modal-produk').modal('show');
+    function tampilStok() {
+        $('#modal-stok').modal('show');
     }
 
-    function hideProduk() {
-        $('#modal-produk').modal('hide');
+    function hideStok() {
+        $('#modal-stok').modal('hide');
     }
 
-    function pilihProduk(id, kode) {
-        $('#id_produk').val(id);
-        $('#kode_produk').val(kode);
-        hideProduk();
-        tambahProduk();
+    function pilihStok(id, kode) {
+        $('#id_stok').val(id);
+        $('#kode_stok').val(kode);
+        hideStok();
+        tambahStok();
     }
 
-    function tambahProduk() {
-        $.post('{{ route('pembelian_detail.store') }}', $('.form-produk').serialize())
+    function tambahStok() {
+        $.post('{{ route('pembelian_detail.store') }}', $('.form-stok').serialize())
             .done(response => {
-                $('#kode_produk').focus();
+                $('#kode_stok').focus();
                 table.ajax.reload(() => loadForm($('#diskon').val()));
             })
             .fail(errors => {

@@ -1,12 +1,12 @@
 @extends('layouts.master')
 
 @section('title')
-    Daftar Member
+    Daftar Stok
 @endsection
 
 @section('breadcrumb')
     @parent
-    <li class="active">Daftar Member</li>
+    <li class="active">Daftar Stok</li>
 @endsection
 
 @section('content')
@@ -14,11 +14,14 @@
     <div class="col-lg-12">
         <div class="box">
             <div class="box-header with-border">
-                <button onclick="addForm('{{ route('member.store') }}')" class="btn btn-success btn-xs btn-flat"><i class="fa fa-plus-circle"></i> Tambah</button>
-                <button onclick="cetakMember('{{ route('member.cetak_member') }}')" class="btn btn-info btn-xs btn-flat"><i class="fa fa-id-card"></i> Cetak Member</button>
+                <div class="btn-group">
+                    <button onclick="addForm('{{ route('stok.store') }}')" class="btn btn-success btn-xs btn-flat"><i class="fa fa-plus-circle"></i> Tambah</button>
+                    <button onclick="deleteSelected('{{ route('stok.delete_selected') }}')" class="btn btn-danger btn-xs btn-flat"><i class="fa fa-trash"></i> Hapus</button>
+                    <button onclick="cetakBarcode('{{ route('stok.cetak_barcode') }}')" class="btn btn-info btn-xs btn-flat"><i class="fa fa-barcode"></i> Cetak Barcode</button>
+                </div>
             </div>
             <div class="box-body table-responsive">
-                <form action="" method="post" class="form-member">
+                <form action="" method="post" class="form-stok">
                     @csrf
                     <table class="table table-stiped table-bordered">
                         <thead>
@@ -28,10 +31,12 @@
                             <th width="5%">No</th>
                             <th>Kode</th>
                             <th>Nama</th>
-                            <th>poin</th>
-                            <th>Status</th>                    
-                            <th>Telepon</th>
-                            <th>Alamat</th>
+                            <th>Kategori</th>
+                            <th>Merk</th>
+                            <th>Harga Beli</th>
+                            <th>Harga Jual</th>
+                            <th>Diskon</th>
+                            <th>Stok</th>
                             <th width="15%"><i class="fa fa-cog"></i></th>
                         </thead>
                     </table>
@@ -41,7 +46,7 @@
     </div>
 </div>
 
-@includeIf('member.form')
+@includeIf('stok.form')
 @endsection
 
 @push('scripts')
@@ -55,17 +60,19 @@
             serverSide: true,
             autoWidth: false,
             ajax: {
-                url: '{{ route('member.data') }}',
+                url: '{{ route('stok.data') }}',
             },
             columns: [
                 {data: 'select_all', searchable: false, sortable: false},
                 {data: 'DT_RowIndex', searchable: false, sortable: false},
-                {data: 'kode_member'},
-                {data: 'nama'},
-                {data: 'poin'},
-                {data: 'status'},
-                {data: 'telepon'},
-                {data: 'alamat'},
+                {data: 'kode_stok'},
+                {data: 'nama_stok'},
+                {data: 'nama_kategori'},
+                {data: 'merk'},
+                {data: 'harga_beli'},
+                {data: 'harga_jual'},
+                {data: 'diskon'},
+                {data: 'stok'},
                 {data: 'aksi', searchable: false, sortable: false},
             ]
         });
@@ -78,7 +85,7 @@
                         table.ajax.reload();
                     })
                     .fail((errors) => {
-                        alert('Nomor telepon sudah digunakan, silakan gunakan nomor lain');
+                        alert('Tidak dapat menyimpan data');
                         return;
                     });
             }
@@ -91,28 +98,32 @@
 
     function addForm(url) {
         $('#modal-form').modal('show');
-        $('#modal-form .modal-title').text('Tambah Member');
+        $('#modal-form .modal-title').text('Tambah Stok');
 
         $('#modal-form form')[0].reset();
         $('#modal-form form').attr('action', url);
         $('#modal-form [name=_method]').val('post');
-        $('#modal-form [name=nama]').focus();
+        $('#modal-form [name=nama_stok]').focus();
     }
 
     function editForm(url) {
         $('#modal-form').modal('show');
-        $('#modal-form .modal-title').text('Edit Member');
+        $('#modal-form .modal-title').text('Edit Stok');
 
         $('#modal-form form')[0].reset();
         $('#modal-form form').attr('action', url);
         $('#modal-form [name=_method]').val('put');
-        $('#modal-form [name=nama]').focus();
+        $('#modal-form [name=nama_stok]').focus();
 
         $.get(url)
             .done((response) => {
-                $('#modal-form [name=nama]').val(response.nama);
-                $('#modal-form [name=telepon]').val(response.telepon);
-                $('#modal-form [name=alamat]').val(response.alamat);
+                $('#modal-form [name=nama_stok]').val(response.nama_stok);
+                $('#modal-form [name=id_kategori]').val(response.id_kategori);
+                $('#modal-form [name=merk]').val(response.merk);
+                $('#modal-form [name=harga_beli]').val(response.harga_beli);
+                $('#modal-form [name=harga_jual]').val(response.harga_jual);
+                $('#modal-form [name=diskon]').val(response.diskon);
+                $('#modal-form [name=stok]').val(response.stok);
             })
             .fail((errors) => {
                 alert('Tidak dapat menampilkan data');
@@ -136,12 +147,33 @@
         }
     }
 
-    function cetakMember(url) {
+    function deleteSelected(url) {
+        if ($('input:checked').length > 1) {
+            if (confirm('Yakin ingin menghapus data terpilih?')) {
+                $.post(url, $('.form-stok').serialize())
+                    .done((response) => {
+                        table.ajax.reload();
+                    })
+                    .fail((errors) => {
+                        alert('Tidak dapat menghapus data');
+                        return;
+                    });
+            }
+        } else {
+            alert('Pilih data yang akan dihapus');
+            return;
+        }
+    }
+
+    function cetakBarcode(url) {
         if ($('input:checked').length < 1) {
             alert('Pilih data yang akan dicetak');
             return;
+        } else if ($('input:checked').length < 3) {
+            alert('Pilih minimal 3 data untuk dicetak');
+            return;
         } else {
-            $('.form-member')
+            $('.form-stok')
                 .attr('target', '_blank')
                 .attr('action', url)
                 .submit();
