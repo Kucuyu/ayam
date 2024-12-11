@@ -127,6 +127,7 @@
                                 <label for="diterima" class="col-lg-2 control-label">Diterima</label>
                                 <div class="col-lg-8">
                                     <input type="number" id="diterima" class="form-control" name="diterima" value="{{ $penjualan->diterima ?? 0 }}">
+                                 <span class="help-block with-errors"></span>
                                 </div>
                             </div>
                             <div class="form-group row">
