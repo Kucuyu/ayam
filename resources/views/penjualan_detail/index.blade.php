@@ -44,19 +44,22 @@
                     
                 <form class="form-produk">
                     @csrf
-                    <div class="form-group row">
-                        <label for="kode_produk" class="col-lg-2">Kode Produk</label>
-                        <div class="col-lg-5">
-                            <div class="input-group">
-                                <input type="hidden" name="id_penjualan" id="id_penjualan" value="{{ $id_penjualan }}">
-                                <input type="hidden" name="id_produk" id="id_produk">
-                                <input type="text" class="form-control" name="kode_produk" id="kode_produk">
-                                <span class="input-group-btn">
-                                    <button onclick="tampilProduk()" class="btn btn-info btn-flat" type="button"><i class="fa fa-arrow-right"></i></button>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                   <div class="form-group row">
+    <label for="kode_produk" class="col-lg-2">Kode Produk</label>
+    <div class="col-lg-5">
+        <div class="input-group">
+            <input type="hidden" name="id_penjualan" id="id_penjualan" value="{{ $id_penjualan }}">
+            <input type="hidden" name="id_produk" id="id_produk">
+            <input type="text" class="form-control" name="kode_produk" id="kode_produk" required>
+            <span class="input-group-btn">
+                <button onclick="tampilProduk()" class="btn btn-info btn-flat" type="button">
+                    <i class="fa fa-arrow-right"></i>
+                </button>
+            </span>
+        </div>
+        <span class="help-block with-errors" id="kode_produk_error" style="color: red;"></span>
+    </div>
+</div>
                 </form>
 
                 <table class="table table-stiped table-bordered table-penjualan">
@@ -103,6 +106,7 @@
                                             <button onclick="tampilMember()" class="btn btn-info btn-flat" type="button"><i class="fa fa-arrow-right"></i></button>
                                         </span>
                                     </div>
+                                    <span class="help-block with-errors" id="kode_member_error" style="color: red;"></span>
                                 </div>
                             </div>
 
@@ -229,19 +233,77 @@
             loadForm($(this).val());
         });
 
-        $('#diterima').on('input', function () {
-            if ($(this).val() == "") {
-                $(this).val(0).select();
-            }
+       $('#diterima').on('input', function () {
+    const diterima = parseFloat($(this).val()) || 0;
+    const bayar = parseFloat($('#bayar').val()) || 0;
+    const diterimaDalamRp = $('#bayarrp').val().replace('Rp. ', '').replace(/\./g, '').replace(',', '.');
+    const bayarDalamRp = parseFloat(diterimaDalamRp);
 
-            loadForm($('#diskon').val(), $(this).val());
-        }).focus(function () {
-            $(this).select();
-        });
+    // Reset error message
+    $('#diterima').parent().find('.help-block').text('');
 
-        $('.btn-simpan').on('click', function () {
-            $('.form-penjualan').submit();
-        });
+    if (diterima < bayarDalamRp) {
+        // Show error message
+        $('#diterima').parent().find('.help-block').text('Jumlah diterima tidak boleh kurang dari total bayar');
+        
+        // Optionally, you can prevent further processing
+        return;
+    }
+
+    if ($(this).val() == "") {
+        $(this).val(0).select();
+    }
+
+    loadForm($('#diskon').val(), $(this).val());
+}).focus(function () {
+    $(this).select();
+});
+
+      $('.btn-simpan').on('click', function (e) {
+    e.preventDefault(); // Mencegah pengiriman form sebelum validasi
+
+    const kodeProduk = $('#kode_produk').val().trim();
+    const idProduk = $('#id_produk').val().trim();
+    const kodeMember = $('#kode_member').val().trim();
+    const idMember = $('#id_member').val().trim();
+    const diterima = parseFloat($('#diterima').val()) || 0;
+    const bayar = parseFloat($('#bayar').val()) || 0;
+    const diterimaDalamRp = $('#bayarrp').val().replace('Rp. ', '').replace(/\./g, '').replace(',', '.');
+    const bayarDalamRp = parseFloat(diterimaDalamRp);
+
+    const kodeProdukError = $('#kode_produk_error');
+    const kodeMemberError = $('#kode_member_error');
+    const diterimaDalamError = $('#diterima').parent().find('.help-block');
+
+    // Reset pesan error
+    kodeProdukError.text('');
+    kodeMemberError.text('');
+    diterimaDalamError.text('');
+
+    // Validasi: jika id_stok kosong (tidak ada data produk dipilih), tampilkan error
+    if (!idProduk) {
+        kodeProdukError.text('Harap pilih data produk terlebih dahulu.');
+        $('#kode_produk').focus();
+        return; // Hentikan eksekusi jika validasi gagal
+    }
+
+    // Validasi: jika id_member kosong (tidak ada data member dipilih), tampilkan error
+    if (!idMember) {
+        kodeMemberError.text('Harap pilih data member terlebih dahulu.');
+        $('#kode_member').focus();
+        return; // Hentikan eksekusi jika validasi gagal
+    }
+
+    // Validasi: jika diterima kurang dari bayar, tampilkan error
+    if (diterima < bayarDalamRp) {
+        diterimaDalamError.text('Jumlah diterima tidak boleh kurang dari total bayar');
+        $('#diterima').focus();
+        return; // Hentikan eksekusi jika validasi gagal
+    }
+
+    // Jika validasi berhasil, kirimkan form
+    $('.form-penjualan').submit();
+});
     });
 
     function tampilProduk() {

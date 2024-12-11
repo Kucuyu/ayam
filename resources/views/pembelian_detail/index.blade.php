@@ -60,19 +60,23 @@
                     
                 <form class="form-stok">
                     @csrf
-                    <div class="form-group row">
-                        <label for="kode_stok" class="col-lg-2">Kode Stok</label>
-                        <div class="col-lg-5">
-                            <div class="input-group">
-                                <input type="hidden" name="id_pembelian" id="id_pembelian" value="{{ $id_pembelian }}">
-                                <input type="hidden" name="id_stok" id="id_stok">
-                                <input type="text" class="form-control" name="kode_stok" id="kode_stok">
-                                <span class="input-group-btn">
-                                    <button onclick="tampilStok()" class="btn btn-info btn-flat" type="button"><i class="fa fa-arrow-right"></i></button>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+<div class="form-group row">
+    <label for="kode_stok" class="col-lg-2">Kode Stok</label>
+    <div class="col-lg-5">
+        <div class="input-group">
+            <input type="hidden" name="id_pembelian" id="id_pembelian" value="{{ $id_pembelian }}">
+            <input type="hidden" name="id_stok" id="id_stok">
+            <input type="text" class="form-control" name="kode_stok" id="kode_stok" required>
+            <span class="input-group-btn">
+                <button onclick="tampilStok()" class="btn btn-info btn-flat" type="button">
+                    <i class="fa fa-arrow-right"></i>
+                </button>
+            </span>
+        </div>
+        <span class="help-block with-errors" id="kode_stok_error" style="color: red;"></span>
+    </div>
+</div>
+
                 </form>
 
                 <table class="table table-stiped table-bordered table-pembelian">
@@ -109,13 +113,13 @@
                             <div class="form-group row">
                                 <label for="diskon" class="col-lg-2 control-label">Diskon</label>
                                 <div class="col-lg-8">
-                                    <input type="number" name="diskon" id="diskon" class="form-control" value="{{ $diskon }}">
+                                    <input type="number" name="diskon" id="diskon" class="form-control"required min="0"  value="{{ $diskon }}">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="bayar" class="col-lg-2 control-label">Bayar</label>
                                 <div class="col-lg-8">
-                                    <input type="text" id="bayarrp" class="form-control">
+                                    <input type="text" id="bayarrp" class="form-control" readonly>
                                 </div>
                             </div>
                         </form>
@@ -205,9 +209,27 @@
             loadForm($(this).val());
         });
 
-        $('.btn-simpan').on('click', function () {
-            $('.form-pembelian').submit();
-        });
+       $('.btn-simpan').on('click', function (e) {
+    e.preventDefault(); // Mencegah pengiriman form sebelum validasi
+
+    const kodeStok = $('#kode_stok').val().trim();
+    const idStok = $('#id_stok').val().trim();
+    const kodeStokError = $('#kode_stok_error');
+
+    // Reset pesan error
+    kodeStokError.text('');
+
+    // Validasi: jika id_stok kosong (tidak ada data stok dipilih), tampilkan error
+    if (!idStok) {
+        kodeStokError.text('Harap pilih data stok terlebih dahulu.');
+        $('#kode_stok').focus();
+        return; // Hentikan eksekusi jika validasi gagal
+    }
+
+    // Jika validasi berhasil, kirimkan form
+    $('.form-pembelian').submit();
+});
+
     });
 
     function tampilStok() {
